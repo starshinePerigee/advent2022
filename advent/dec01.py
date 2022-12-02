@@ -1,16 +1,21 @@
 from util import aocio
 
 
-input = aocio.get_day(1)
+day_input = aocio.get_day(1)
 
 
-elves = input.split("\n\n")
+elves = input.day_input("\n\n")
 
 elf_totals = []
-for elf in elves:
+for i, elf in enumerate(elves):
     elf_total = sum([int(s) for s in elf.split("\n") if len(s) > 0])
-    elf_totals += [elf_total]
+    elf_totals += [(elf_total, i)]
 
-print(max(elf_totals))
+sorted_elves = sorted(elf_totals, reverse=True)
 
+total_calories = 0
+for i in range(3):
+    print(f"{i+1}: {sorted_elves[i]}")
+    total_calories += sorted_elves[i][0]
 
+print(total_calories)

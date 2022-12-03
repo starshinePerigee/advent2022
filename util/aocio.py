@@ -22,7 +22,7 @@ def get_day(day: int = None, test: bool = False) -> str:
     if os.path.exists(target_path):
         with open(target_path) as input_file:
             input_string = input_file.read()
-        return input_string
+        return input_string.strip()
 
     if test:
         raise RuntimeError(f"Test file {target_path} does not exist!")
@@ -46,7 +46,7 @@ def get_day(day: int = None, test: bool = False) -> str:
     with open(target_path, 'a+') as input_file:
         input_file.write(request.text)
 
-    return request.text
+    return request.text.strip()
 
 
 if __name__ == '__main__':

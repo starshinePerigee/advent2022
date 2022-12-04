@@ -26,7 +26,10 @@ def check_overlap(entries: list[int]) -> bool:
         ([1, 1], [2, 2], False),
         ([2, 4], [1, 4], True),
         ([3, 4], [1, 6], True),
-        ([1, 5], [2, 6], False)
+        ([1, 5], [2, 6], False),
+        ([1, 4], [2, 2], True),
+        ([10, 20], [11, 19], True),
+        ([11, 12], [13, 14], False)
     ]
 )
 def test_check_overlap(left, right, result):
@@ -38,6 +41,7 @@ def part_one(raw_input):
     total = 0
     for pair in raw_input.split('\n'):
         entries = re.split('[-,]', pair)
+        entries = [int(e) for e in entries]
         total += int(check_overlap(entries))
     return total
 

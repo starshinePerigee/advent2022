@@ -61,7 +61,9 @@ class CrateStacks:
 
         count, source, dest = map(int, crunched.groups())
         try:
-            moving = self[source][:-count-1:-1]
+            # moving = self[source][:-count-1:-1]
+            # update for part 2
+            moving = self[source][len(self[source]) - count:]
             self[source] = self[source][:-count]
             self[dest] = self[dest] + moving
         except KeyError:
@@ -119,14 +121,14 @@ def test_run_instruction(demo_stack):
     print("\n" + demo_stack.nice_string())
 
 
-def test_run_first_half():
+def test_run_second_half():
     crates, instructions = split_file(aocio.get_day(5, True, False))
     stack = CrateStacks.load_string(crates)
     stack.run_many_instructions(instructions)
     print("\n" + stack.nice_string())
-    assert stack[1] == "C"
-    assert stack[2] == "M"
-    assert stack[3] == "PDNZ"
+    assert stack[1] == "M"
+    assert stack[2] == "C"
+    assert stack[3] == "PZND"
 
     # get answer
     s_crates, s_instructions = split_file(aocio.get_day(5, False, False))

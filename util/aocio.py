@@ -8,7 +8,7 @@ from util.cookie import cookie
 
 # thanks to https://github.com/Starwort/aoc_helper
 
-def get_day(day: int = None, test: bool = False) -> str:
+def get_day(day: int = None, test: bool = False, trim: bool = True) -> str:
     if day is None:
         day = datetime.datetime.today().day
 
@@ -22,7 +22,10 @@ def get_day(day: int = None, test: bool = False) -> str:
     if os.path.exists(target_path):
         with open(target_path) as input_file:
             input_string = input_file.read()
-        return input_string.strip()
+        if trim:
+            return input_string.strip()
+        else:
+            return input_string
 
     if test:
         raise RuntimeError(f"Test file {target_path} does not exist!")
@@ -46,7 +49,10 @@ def get_day(day: int = None, test: bool = False) -> str:
     with open(target_path, 'a+') as input_file:
         input_file.write(request.text)
 
-    return request.text.strip()
+    if trim:
+        return request.text.strip()
+    else:
+        return request.text
 
 
 if __name__ == '__main__':

@@ -128,13 +128,22 @@ def test_add_move_dir(fs):
     fs.root.print_tree()
 
 
-def test_part_one(fs):
-    commands = aocio.get_day(7, True)
+@pytest.mark.parametrize(
+    "commands, is_test",
+    [
+        (aocio.get_day(7, True), True),
+        (aocio.get_day(7), False)
+    ],
+    ids=["test", "real"]
+)
+def test_part_one(fs, commands, is_test):
     for command in commands.splitlines():
         fs.parse_command(command)
     fs.root.print_tree()
-    assert len(fs.root) == 48381165
-    assert len(fs.root.get_child("d")) == 24933642
+
+    if is_test:
+        assert len(fs.root) == 48381165
+        assert len(fs.root.get_child("d")) == 24933642
 
     total_under = 0
     for file in fs.all_files:
@@ -142,19 +151,43 @@ def test_part_one(fs):
             file_len = len(file)
             if file_len <= 100000:
                 total_under += file_len
-    assert total_under == 95437
 
-
-def test_execute_part_one(fs):
-    commands = aocio.get_day(7)
-    for command in commands.splitlines():
-        fs.parse_command(command)
-    fs.root.print_tree()
-
-    total_under = 0
-    for file in fs.all_files:
-        if not file.file:
-            file_len = len(file)
-            if file_len <= 100000:
-                total_under += file_len
+    if is_test:
+        assert total_under == 95437
     print("Total under:" + str(total_under))
+
+
+@pytest.mark.parametrize(
+    "commands, is_test",
+    [
+        (aocio.get_day(7, True), True),
+        (aocio.get_day(7), False)
+    ],
+    ids=["test", "real"]
+)
+def test_part_two(fs, commands, is_test):
+    for command in commands.splitlines():
+        fs.parse_command(command)
+
+    TOTAL_SPACE = 70000000  # noqa
+    REQUIRED_SPACE = 30000000  # noqa
+    space_required = (REQUIRED_SPACE + len(fs.root)) - TOTAL_SPACE
+    print(f"{space_required} space required")
+    if is_test:
+        assert len(fs.root) == 48381165
+        assert space_required == 8381165
+
+    all_files = [(len(x), x) for x in fs.all_files if not x.file]
+    all_files = sorted(all_files, key=lambda x: x[0])
+    print(all_files)
+
+    max_file = None
+    for file in all_files:
+        max_file = file
+        if file[0] >= space_required:
+            break
+
+    print(max_file)
+    if is_test:
+        assert max_file[0] == 24933642
+

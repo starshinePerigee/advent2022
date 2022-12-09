@@ -10,6 +10,7 @@ class File:
         self.name = name
         self.size = size
         self.parent = parent
+        self.file = True
 
     def __str__(self):
         return self.name
@@ -24,7 +25,7 @@ class File:
         raise NotImplementedError(f"Tried to call iadd on {self}")
 
     def summary(self) -> str:
-        return f"{self.name} (file, size={self.size}"
+        return f"{self.name} (file, size={self.size})"
 
     def print_tree(self) -> None:
         print(f"{'  '*self.draw_level} - {self.summary()}")
@@ -33,6 +34,7 @@ class File:
 class Directory(File):
     def __init__(self, name: str, parent: 'Directory' = None):
         super().__init__(name, 0, parent)
+        self.file = False
         self.files = []
 
     def __len__(self):
@@ -50,10 +52,10 @@ class Directory(File):
 
     def print_tree(self) -> None:
         print(f"{'  '*self.draw_level} - {self.summary()}")
-        self.draw_level += 1
+        File.draw_level += 1
         for file in self.files:
             file.print_tree()
-        self.draw_level -= 1
+        File.draw_level -= 1
 
     def get_child(self, name: str) -> File:
         for file in self.files:
@@ -65,6 +67,7 @@ class Directory(File):
 class FileSystem:
     def __init__(self):
         self.root = Directory("")
+        self.all_files = [self.root]
         self.cwd = self.root
         self._line = 0
 
@@ -77,6 +80,8 @@ class FileSystem:
                 self.cwd = self.cwd.parent
                 if self.cwd is None:
                     raise RuntimeError(f"Escape above root on line {self._line}: {command}")
+            elif command[-1:] == "/":
+                self.cwd = self.root
             else:
                 self.cwd = self.cwd.get_child(command[5:])
         elif "$ ls" in command:
@@ -84,9 +89,13 @@ class FileSystem:
         else:
             size, name = command.split(" ", maxsplit=1)
             if size == "dir":
-                self.cwd += Directory(name, self.cwd)
+                new_dir = Directory(name, self.cwd)
+                self.cwd += new_dir
+                self.all_files += [new_dir]
             else:
-                self.cwd += File(name, int(size), self.cwd)
+                new_file = File(name, int(size), self.cwd)
+                self.cwd += new_file
+                self.all_files += [new_file]
 
     def cwd_str(self) -> str:
         return "/" + "/".join([str(x) for x in self.cwd[1:]])
@@ -115,3 +124,37 @@ def test_add_move_dir(fs):
     assert len(fs.cwd) == 123
     assert len(fs.root) == 123
     assert fs.cwd is not fs.root
+    print("")
+    fs.root.print_tree()
+
+
+def test_part_one(fs):
+    commands = aocio.get_day(7, True)
+    for command in commands.splitlines():
+        fs.parse_command(command)
+    fs.root.print_tree()
+    assert len(fs.root) == 48381165
+    assert len(fs.root.get_child("d")) == 24933642
+
+    total_under = 0
+    for file in fs.all_files:
+        if not file.file:
+            file_len = len(file)
+            if file_len <= 100000:
+                total_under += file_len
+    assert total_under == 95437
+
+
+def test_execute_part_one(fs):
+    commands = aocio.get_day(7)
+    for command in commands.splitlines():
+        fs.parse_command(command)
+    fs.root.print_tree()
+
+    total_under = 0
+    for file in fs.all_files:
+        if not file.file:
+            file_len = len(file)
+            if file_len <= 100000:
+                total_under += file_len
+    print("Total under:" + str(total_under))

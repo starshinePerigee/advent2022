@@ -45,6 +45,17 @@ def test_invert_2d_list():
     print(stringify_matrix(new_list))
 
 
+def flip_matrix(matrix: list[list]) -> list[list]:
+    return [x[::-1] for x in matrix]
+
+
+def test_flip_matrix():
+    m = [[1, 2, 3], [4, 5, 6]]
+    assert m[0][0] == 1
+    m = flip_matrix(m)
+    assert m[0][0] == 3
+
+
 def test_read_string():
     matrix = read_string(aocio.get_day(8, True))
     print("")
@@ -104,3 +115,98 @@ def test_part_one(text_input, is_test):
         assert total_visible == 21
     else:
         print(f"total: {total_visible}")
+
+
+def generate_one_directional_scenic(forest: list[list[int]]) -> list[list[int]]:
+    scenic_matrix = []
+    for row in forest:
+        scenic_row = []
+        for i, current_tree in enumerate(row):
+            current_scenery = 0
+            for j, col_item in enumerate(row):
+                if i == j:
+                    break
+                elif col_item < current_tree:
+                    current_scenery += 1
+                else:
+                    current_scenery = 1
+
+            scenic_row += [current_scenery]
+        scenic_matrix += [scenic_row]
+    return scenic_matrix
+
+
+def test_generate_one_directional_scenic():
+    test_matrix = [
+        [1, 2, 3],
+        [3, 2, 1],
+        [1, 3, 2]
+    ]
+    results = generate_one_directional_scenic(test_matrix)
+    print("")
+    print(stringify_matrix(results))
+    assert results[0][0] == 0
+    assert results[0][1] == 1
+    assert results[0][2] == 2
+    assert results[1][2] == 1
+
+
+def test_generate_one_dimensional_scenic_real_data():
+    test_input = aocio.get_day(8, True)
+    test_forest = read_string(test_input)
+    scenic = generate_one_directional_scenic(test_forest)
+    print("")
+    print(stringify_matrix(test_forest))
+    print("")
+    print(stringify_matrix(scenic))
+    assert scenic[0][4] == 1
+    assert scenic[0][3] == 3
+
+
+def run_four_dimensional_scenic(forest):
+    east = generate_one_directional_scenic(forest)
+
+    flip_forest = flip_matrix(forest)
+    west = generate_one_directional_scenic(flip_forest)
+    west = flip_matrix(west)
+
+    invert_forest = invert_2d_list(forest)
+    north = generate_one_directional_scenic(invert_forest)
+    north = invert_2d_list(north)
+
+    invert_flip_forest = flip_matrix(invert_forest)
+    south = generate_one_directional_scenic(invert_flip_forest)
+    south = flip_matrix(south)
+    south = invert_2d_list(south)
+
+    total_scenic = []
+    for row_east, row_west, row_north, row_south in zip(east, west, north, south):
+        scenic_row = []
+        for e, w, n, s in zip(row_east, row_west, row_north, row_south):
+            scenic_row += [e * w * n * s]
+        total_scenic += [scenic_row]
+    return total_scenic
+
+
+def get_2d_max(matrix):
+    return max(max(row) for row in matrix)
+
+
+@pytest.mark.parametrize(
+    "text_input, is_test",
+    [
+        (aocio.get_day(8, True), True),
+        (aocio.get_day(8), False)
+    ],
+    ids=["test", "real"]
+)
+def test_four_dimensional_scenic(text_input, is_test):
+    print("")
+    forest_matrix = read_string(text_input)
+    final_scenic = run_four_dimensional_scenic(forest_matrix)
+    print(stringify_matrix(final_scenic))
+    if is_test:
+        assert final_scenic[1][2] == 4
+        assert get_2d_max(final_scenic) == 8
+    else:
+        print(f"best scenic score is {get_2d_max(final_scenic)}")

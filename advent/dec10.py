@@ -74,3 +74,82 @@ def test_parse_all(command_string, target_points, is_test):
     print(f"total total: {running_total}")
     if is_test:
         assert running_total == 13140
+
+
+def check_pixel(cycle: int, waveform: list[int]) -> bool:
+    sprite_loc = waveform[cycle+1]
+    pixel = sprite_loc - 1 <= cycle % 40 <= sprite_loc + 1
+    return pixel
+
+
+SINGLE_ROW = "##..##..##..##..##..##..##..##..##..##.."
+
+
+def test_single_row():
+    commands = aocio.get_day(10, True)
+    waveform = parse_all_commands(commands)
+
+    display_str = ""
+    backend_str = ""
+    for i in range(len(SINGLE_ROW)):
+        pixel = check_pixel(i, waveform)
+        if pixel:
+            display_str += "@"
+            backend_str += "#"
+        else:
+            display_str += " "
+            backend_str += "."
+
+    print(display_str)
+    assert backend_str == SINGLE_ROW
+
+
+FULL_TEST_PATTERN = """##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######....."""
+
+
+test_pattern_single = FULL_TEST_PATTERN.replace("\n", "")
+print(test_pattern_single)
+
+
+@pytest.mark.parametrize(
+    "command_string, is_test",
+    [
+        (aocio.get_day(10, True), True),
+        (aocio.get_day(10), False),
+    ],
+    ids=["Test", "Real"]
+)
+def test_full_chars(command_string, is_test):
+    waveform = parse_all_commands(command_string)
+
+    pattern = ""
+    cooler_pattern = ""
+    for i in range(len(test_pattern_single)):
+        if check_pixel(i, waveform):
+            pattern += "#"
+            cooler_pattern += "@"
+        else:
+            pattern += "."
+            cooler_pattern += " "
+
+    print("")
+    row_len = len(SINGLE_ROW)
+    for j in range(len(test_pattern_single)//row_len):
+        print(cooler_pattern[j*row_len:(j+1)*row_len])
+
+
+# HECK YEAH:
+"""
+@@@@ @@@@ @  @  @@  @    @@@   @@  @@@  
+@    @    @  @ @  @ @    @  @ @  @ @  @ 
+@@@  @@@  @  @ @    @    @  @ @  @ @  @ 
+@    @    @  @ @ @@ @    @@@  @@@@ @@@  
+@    @    @  @ @  @ @    @    @  @ @    
+@@@@ @     @@   @@@ @@@@ @    @  @ @    
+
+"""
